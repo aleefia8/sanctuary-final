@@ -1,0 +1,112 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "The core user profile containing tier and health status.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The user's unique ID." },
+        "displayName": { "type": "string", "description": "User's display name." },
+        "email": { "type": "string", "description": "User's email address." },
+        "tier": { "type": "string", "enum": ["free", "commitment", "transformation", "clinical"], "description": "The user's current subscription tier." },
+        "credits": { "type": "number", "description": "Available credits for programs." },
+        "metabolicAge": { "type": "number", "description": "Calculated metabolic age." },
+        "healthScore": { "type": "number", "description": "Overall health score (0-100)." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the user joined." }
+      },
+      "required": ["uid", "email", "tier"]
+    },
+    "BiometricLog": {
+      "title": "Biometric Log",
+      "description": "Daily biometric data for a user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The user who owns this log." },
+        "date": { "type": "string", "format": "date", "description": "The date of the log." },
+        "sleepHours": { "type": "number", "description": "Hours of sleep." },
+        "mood": { "type": "number", "description": "Mood score (1-10)." },
+        "heartRate": { "type": "number", "description": "Resting heart rate." },
+        "metabolicMarker": { "type": "number", "description": "A specific metabolic marker value." },
+        "timestamp": { "type": "string", "format": "date-time", "description": "When the log was created." }
+      },
+      "required": ["userId", "date", "timestamp"]
+    },
+    "Habit": {
+      "title": "Habit Tracking",
+      "description": "Daily habit completion status.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The user who owns this habit." },
+        "name": { "type": "string", "description": "Name of the habit." },
+        "completed": { "type": "boolean", "description": "Whether the habit was completed." },
+        "date": { "type": "string", "format": "date", "description": "The date of completion." }
+      },
+      "required": ["userId", "name", "date"]
+    },
+    "Program": {
+      "title": "Transformation Program",
+      "description": "A structured health program.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique program ID." },
+        "title": { "type": "string", "description": "Program title." },
+        "description": { "type": "string", "description": "Program description." },
+        "durationDays": { "type": "number", "description": "Duration in days." },
+        "price": { "type": "number", "description": "Price in USD." },
+        "tierRequired": { "type": "string", "enum": ["free", "commitment", "transformation", "clinical"], "description": "Minimum tier required." }
+      },
+      "required": ["id", "title", "durationDays", "price"]
+    },
+    "Badge": {
+      "title": "User Badge",
+      "description": "A reward earned by the user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "icon": { "type": "string" },
+        "earnedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "icon", "earnedAt"]
+    },
+    "Challenge": {
+      "title": "Health Challenge",
+      "description": "A time-bound health challenge.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "rewardCredits": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "completed", "failed"] }
+      },
+      "required": ["id", "title", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents."
+    },
+    "/users/{userId}/biometrics/{logId}": {
+      "schema": "BiometricLog",
+      "description": "User daily biometric logs."
+    },
+    "/users/{userId}/habits/{habitId}": {
+      "schema": "Habit",
+      "description": "User daily habit tracking."
+    },
+    "/users/{userId}/badges/{badgeId}": {
+      "schema": "Badge",
+      "description": "Badges earned by the user."
+    },
+    "/users/{userId}/challenges/{challengeId}": {
+      "schema": "Challenge",
+      "description": "Challenges the user is participating in."
+    },
+    "/programs/{programId}": {
+      "schema": "Program",
+      "description": "Available transformation programs."
+    }
+  }
+}

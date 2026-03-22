@@ -1,0 +1,7 @@
+{
+  "name": "SanctuaryOS",
+  "description": "A premium health transformation platform with biometric tracking, AI coaching, and a structured clinical care bridge.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

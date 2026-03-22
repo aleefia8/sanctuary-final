@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields: uid, displayName, email, tier, credits, metabolicAge, healthScore, createdAt
+    //
+    // Collection: users/{userId}/biometrics
+    // Fields: userId, date, sleepHours, mood, heartRate, metabolicMarker, timestamp
+    //
+    // Collection: users/{userId}/habits
+    // Fields: userId, name, completed, date
+    //
+    // Collection: programs
+    // Fields: id, title, description, durationDays, price, tierRequired
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' || 
+         (request.auth.token.email == "aleefiabrand@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'tier']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.tier in ['free', 'commitment', 'transformation', 'clinical'];
+    }
+
+    function isValidBiometric(data) {
+      return data.keys().hasAll(['userId', 'date', 'timestamp']) &&
+             data.userId == request.auth.uid;
+    }
+
+    // Rules
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.tier == resource.data.tier) || isAdmin();
+      
+      match /biometrics/{logId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, update: if isOwner(userId) && isValidBiometric(request.resource.data);
+      }
+
+      match /habits/{habitId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, update: if isOwner(userId);
+      }
+
+      match /badges/{badgeId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isAdmin(); // Only system/admin can grant badges
+      }
+
+      match /challenges/{challengeId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, update: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    match /programs/{programId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}
